@@ -36,7 +36,17 @@ class RandomImageDataset(Dataset):
         #  the random state outside this method.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        rng_state = torch.get_rng_state()   # saves the current random generator state
+        np_state = np.random.get_state()
+        torch.random.manual_seed(index)     # changing the seed for the rng according to the index
+        np.random.seed(index)
+        image_dim = self.image_dim
+        sample = torch.randint(0, 256, image_dim)
+        label = np.random.randint(0, self.num_classes)
+
+        torch.set_rng_state(rng_state)  # load previous random generator
+        np.random.set_state(np_state)
+        return sample, label
         # ========================
 
     def __len__(self):
@@ -44,7 +54,7 @@ class RandomImageDataset(Dataset):
         :return: Number of samples in this dataset.
         """
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        return self.num_samples
         # ========================
 
 
@@ -72,11 +82,13 @@ class SubsetDataset(Dataset):
         #  Raise an IndexError if index is out of bounds.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        if index >= self.subset_len:
+            raise IndexError("Index is out of bounds")
+        return self.source_dataset[index + self.offset]
         # ========================
 
     def __len__(self):
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        return self.subset_len
         # ========================
 
