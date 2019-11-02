@@ -29,8 +29,16 @@ class KNNClassifier(object):
         #     the (N,D) matrix x_train and all the labels into the (N,) vector
         #     y_train.
         #  2. Save the number of classes as n_classes.
+
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        xs, ys = [], []
+        for (x, y) in dl_train:
+            xs.append(x.view(1, -1))
+            ys.append(y.view(1))
+        
+        x_train = np.concatenate(xs, axis=0)
+        y_train = np.concatenate(ys, axis=0)
+        n_classes = np.unique(y_train).shape[0]
         # ========================
 
         self.x_train = x_train
@@ -61,8 +69,11 @@ class KNNClassifier(object):
             #  - Find indices of k-nearest neighbors of test sample i
             #  - Set y_pred[i] to the most common class among them
             #  - Don't use an explicit loop.
+
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            nearest_neighbors = np.argpartition(dist_matrix[i], self.k)
+            closest_neighbors_labels = self.y_train[sorted_neighbors[:self.k]]
+            y_pred[i] = np.argmax(np.bincount(closest_neighbors_labels))
             # ========================
 
         return y_pred
@@ -87,9 +98,12 @@ def l2_dist(x1: Tensor, x2: Tensor):
     #    Hint: Open the expression (a-b)^2. Use broadcasting semantics to
     #    combine the three terms efficiently.
 
-    dists = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    x1_squared = (x1 * x1).sum(dim=1)
+    x2_squared = (x2 * x2).sum(dim=1)
+    x1_times_x2 = x1.mm(x2.T)
+    dists_squared = x1_squared.view(-1, 1) - 2 * x1_times_x2 + x2_squared.view(1, -1)
+    dists = np.sqrt(dists_squared)
     # ========================
 
     return dists
@@ -107,9 +121,11 @@ def accuracy(y: Tensor, y_pred: Tensor):
     assert y.dim() == 1
 
     # TODO: Calculate prediction accuracy. Don't use an explicit loop.
-    accuracy = None
+
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    num_correct = (y == y_pred).sum()
+    total = y.shape[0]
+    accuracy = float(num_correct) / total
     # ========================
 
     return accuracy
@@ -126,7 +142,7 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         best_k: the value of k with the highest mean accuracy across folds
         accuracies: The accuracies per fold for each k (list of lists).
     """
-
+    
     accuracies = []
 
     for i, k in enumerate(k_choices):
@@ -140,6 +156,14 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         #  random split each iteration), or implement something else.
 
         # ====== YOUR CODE: ======
+        curr_accuracies = []
+
+        for fold in range(num_folds):
+            dl_train, dl_valid = create_train_validation_loaders(ds_train, 1.0 / num_folds)
+            model.train(dl_train)
+
+            prediction = model.predict(dl_valid)
+            curr_accuracy = accuracy()
         raise NotImplementedError()
         # ========================
 
