@@ -33,12 +33,12 @@ class KNNClassifier(object):
         # ====== YOUR CODE: ======
         xs, ys = [], []
         for (x, y) in dl_train:
-            xs.append(x.view(1, -1))
-            ys.append(y.view(1))
+            xs.append(x)
+            ys.append(y)
         
-        x_train = np.concatenate(xs, axis=0)
-        y_train = np.concatenate(ys, axis=0)
-        n_classes = np.unique(y_train).shape[0]
+        x_train = torch.cat(xs, dim=0)
+        y_train = torch.cat(ys, dim=0)
+        n_classes = torch.unique(y_train).shape[0]
         # ========================
 
         self.x_train = x_train
@@ -71,9 +71,9 @@ class KNNClassifier(object):
             #  - Don't use an explicit loop.
 
             # ====== YOUR CODE: ======
-            nearest_neighbors = np.argpartition(dist_matrix[i], self.k)
-            closest_neighbors_labels = self.y_train[sorted_neighbors[:self.k]]
-            y_pred[i] = np.argmax(np.bincount(closest_neighbors_labels))
+            nearest_neighbors = np.argpartition(dist_matrix[:,i], self.k)
+            closest_neighbors_labels = self.y_train[nearest_neighbors[:self.k]]
+            y_pred[i] = int(np.argmax(np.bincount(closest_neighbors_labels)))
             # ========================
 
         return y_pred
@@ -142,7 +142,7 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         best_k: the value of k with the highest mean accuracy across folds
         accuracies: The accuracies per fold for each k (list of lists).
     """
-    
+
     accuracies = []
 
     for i, k in enumerate(k_choices):
@@ -159,12 +159,22 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         curr_accuracies = []
 
         for fold in range(num_folds):
-            dl_train, dl_valid = create_train_validation_loaders(ds_train, 1.0 / num_folds)
+            dl_train, dl_valid = dataloaders.create_train_validation_loaders(ds_train, 1.0 / num_folds)
             model.train(dl_train)
+            
+            xs, ys = [], []
+            for (x, y) in dl_valid:
+                xs.append(x)
+                ys.append(y)
+            
+            x_valid = torch.cat(xs, dim=0)
+            y_valid = torch.cat(ys, dim=0)
 
-            prediction = model.predict(dl_valid)
-            curr_accuracy = accuracy()
-        raise NotImplementedError()
+            prediction = model.predict(x_valid)
+            curr_accuracy = accuracy(y_valid, prediction)
+            curr_accuracies.append(curr_accuracy)
+
+        accuracies.append(curr_accuracies)
         # ========================
 
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
