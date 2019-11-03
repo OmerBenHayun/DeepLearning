@@ -30,7 +30,7 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         y_pred = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        y_pred = X.dot(self.weights_)
         # ========================
 
         return y_pred
@@ -49,7 +49,11 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         w_opt = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        N, n = X.shape[0], X.shape[1]
+        regularization = self.reg_lambda * N * np.eye(n)
+        inverted = np.linalg.inv(np.dot(X.T, X) + regularization)
+        right_side = np.dot(X.T, y)
+        w_opt = np.dot(inverted, right_side)
         # ========================
 
         self.weights_ = w_opt
@@ -77,7 +81,8 @@ class BiasTrickTransformer(BaseEstimator, TransformerMixin):
 
         xb = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        biases = np.ones((X.shape[0], 1))
+        xb = np.hstack((biases, X))
         # ========================
 
         return xb
@@ -140,7 +145,12 @@ def top_correlated_features(df: DataFrame, target_feature, n=5):
     # TODO: Calculate correlations with target and sort features by it
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    correlations = df.corr(method='pearson')[target_feature]
+    correlations = correlations.drop(target_feature)
+    sorted_correlations = correlations.abs().sort_values(ascending=False)
+    top_features = sorted_correlations[:n]
+    top_n_features = top_features.keys().tolist()
+    top_n_corr = correlations[top_n_features]
     # ========================
 
     return top_n_features, top_n_corr
@@ -156,7 +166,7 @@ def mse_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement MSE using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    mse = np.mean(np.square(y - y_pred))
     # ========================
     return mse
 
@@ -171,7 +181,9 @@ def r2_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement R^2 using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    data_mean = np.mean(y)
+    residual = y - y_pred
+    r2 = 1 - np.dot(residual, residual) / np.dot(y - data_mean, y - data_mean)
     # ========================
     return r2
 
