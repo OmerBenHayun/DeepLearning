@@ -44,40 +44,47 @@ therefore we pick a model which has a better ability to generalize.
 
 part3_q1 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+The selection of delta is arbitrary because the magnitude of our classes scores has no meaning in svm loss function,
+which only refers to the distance of the predicted class score to the real class score.
+This means that as long as the predicted class score is at least delta smaller than the real class score the loss 
+is zero.
+Using regularization on our weights will makes our weights smaller, and therefor also making the distance between 
+the scores smaller, which gives delta more effect over our loss and scale our weights up.
+This means the value we give to delta, which is the margin we want between our scores is meaningless, because
+the weights values and class scores can become smaller or larger arbitrarily, which mean the exact delta value
+has no real meaning except the final size of the weights.
 
 """
 
 part3_q2 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+1. By visualizing the linear model weights for each class, we can see which input features will result in an higher 
+activation score for each class.
+Meaning we can look at the image pixels, and determine which pixels or pattern of the image have more effect by
+the brightness (higher pixel value) of each pixel.
+We should see in each class`s weights image which input the current class is looking for in the input image.
+The classification errors we got using our model occurs because the input image has similar features to the
+predicted class. 
+2. This interpretation is different from the KNN model, in the KNN model our training process includes only memorizing
+the dataset and the model does not learn any unknown data, while in the linear model we try to learn which 
+features belongs to which class and makes our classification according to it.
 """
 
 part3_q3 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1. I would say the learning rate is Good.
+At our first attempt we tried learning rate which equals to 0.1, and we found out that our loss in a bit too "jumpy"
+(it started by decreasing and every few epochs the loss would drastically become larger for one epoch).
+we realised that our learning rate was too high which caused our model to "jump" over the minimum point.
+After decreasing the learning rate by a factor of 10 the loss became more monotonous stable.
+If we used a smaller learning rate we would make smaller steps at the direction of the minimum, and our loss values 
+would decrease slower and it would take more epochs to reach the same loss value we got in our setting.
+2. I would say that the model is slightly overfitted to the training set.
+We can see in the graph that the training accuracy is higher than the validation accuracy for almost the entire training
+process, and the improvement of the training accuracy is slightly better than the validation accuracy,
+which means our model is overfitting to our training dataset.
+But we can also see that the margin between the training accuracy and validation accuracy is not very big, which
+means that the overfitting is not as significant.
 
 """
 
