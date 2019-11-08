@@ -167,7 +167,7 @@ class LinearClassifier(object):
         w = self.weights
         if has_bias:
             w = w[1:]
-        w_images = w.view(self.weights.shape[1], *img_shape)
+        w_images = w.t().view(w.shape[1], *img_shape)
         # ========================
 
         return w_images
