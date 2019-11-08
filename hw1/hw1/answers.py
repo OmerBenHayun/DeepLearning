@@ -63,8 +63,8 @@ activation score for each class.
 Meaning we can look at the image pixels, and determine which pixels or pattern of the image have more effect by
 the brightness (higher pixel value) of each pixel.
 We should see in each class`s weights image which input the current class is looking for in the input image.
-The classification errors we got using our model occurs because the input image has similar features to the
-predicted class. 
+The classification errors we got using our model occurs because the input image had similar features to the
+predicted class, by looking at the weights image, in some cases we can interpret the bright parts as more than 1 number. 
 2. This interpretation is different from the KNN model, in the KNN model our training process includes only memorizing
 the dataset and the model does not learn any unknown data, while in the linear model we try to learn which 
 features belongs to which class and makes our classification according to it.
