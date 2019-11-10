@@ -29,7 +29,6 @@ class LinearClassifier(object):
         w_std = torch.std(w)
         w = (w - w_mean) / w_std
         w *= weight_std
-        # w.requires_grad = True
         self.weights = w
         # ========================
 
@@ -126,7 +125,6 @@ class LinearClassifier(object):
             for x_valid, y_valid in dl_valid:
                 y_valid_pred, class_scores = self.predict(x_valid)
                 valid_loss = loss_fn(x_valid, y_valid, class_scores, y_valid_pred)
-                valid_loss += weight_decay * torch.sum(self.weights ** 2) / 2
                 valid_acc = self.evaluate_accuracy(y_valid, y_valid_pred)
                 epoch_valid_loss += valid_loss
                 epoch_valid_acc += valid_acc

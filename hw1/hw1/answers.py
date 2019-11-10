@@ -52,7 +52,7 @@ Using regularization on our weights will makes our weights smaller, and therefor
 the scores smaller, which gives delta more effect over our loss and scale our weights up.
 This means the value we give to delta, which is the margin we want between our scores is meaningless, because
 the weights values and class scores can become smaller or larger arbitrarily, which mean the exact delta value
-has no real meaning except the final size of the weights.
+has no real meaning except the effect on the final size of the weights.
 
 """
 
@@ -64,7 +64,9 @@ Meaning we can look at the image pixels, and determine which pixels or pattern o
 the brightness (higher pixel value) of each pixel.
 We should see in each class`s weights image which input the current class is looking for in the input image.
 The classification errors we got using our model occurs because the input image had similar features to the
-predicted class, by looking at the weights image, in some cases we can interpret the bright parts as more than 1 number. 
+predicted class, by looking at the weights image, in some cases we can interpret the bright parts as more than 1 number.
+For example the image of digit 7 class`s weights, looks a lot like the digit 7 but also it is very similar to the digit
+2, and therefor there are some miss classifications when the input image is the digit 2.
 2. This interpretation is different from the KNN model, in the KNN model our training process includes only memorizing
 the dataset and the model does not learn any unknown data, while in the linear model we try to learn which 
 features belongs to which class and makes our classification according to it.
