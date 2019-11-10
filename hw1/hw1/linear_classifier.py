@@ -110,10 +110,7 @@ class LinearClassifier(object):
             #     using the weight_decay parameter.
 
             # ====== YOUR CODE: ======
-            epoch_train_acc = 0
-            epoch_valid_acc = 0
-            epoch_train_loss = 0
-            epoch_valid_loss = 0
+            epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss = 0,0,0,0
 
             for x_train, y_train in dl_train:
                 y_train_pred, class_scores = self.predict(x_train)

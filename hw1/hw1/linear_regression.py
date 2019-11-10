@@ -51,6 +51,7 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
         # ====== YOUR CODE: ======
         N, n = X.shape[0], X.shape[1]
         regularization = self.reg_lambda * N * np.eye(n)
+        regularization[0, 0] = 0
         inverted = np.linalg.inv(np.dot(X.T, X) + regularization)
         right_side = np.dot(X.T, y)
         w_opt = np.dot(inverted, right_side)
