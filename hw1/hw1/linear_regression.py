@@ -100,7 +100,7 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
         # TODO: Your custom initialization, if needed
         # Add any hyperparameters you need and save them as above
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        #raise NotImplementedError()
         # ========================
 
     def fit(self, X, y=None):
@@ -122,7 +122,10 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
 
         X_transformed = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        X_filtered = np.delete(X, [2, 4, 9, 10, 11], axis=1)
+
+        poly = PolynomialFeatures(degree=self.degree)
+        X_transformed = poly.fit_transform(X_filtered)
         # ========================
 
         return X_transformed
@@ -216,7 +219,23 @@ def cv_best_hyperparams(model: BaseEstimator, X, y, k_folds,
     #  - You can use MSE or R^2 as a score.
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    DEGREE_PARAM = "bostonfeaturestransformer__degree"
+    LAMBDA_PARAM = "linearregressor__reg_lambda"
+
+    results = {}
+    for degree in degree_range:
+        for reg_lambda in lambda_range:
+            params = model.get_params()
+            params[DEGREE_PARAM] = degree
+            params[LAMBDA_PARAM] = reg_lambda
+            model.set_params(**params)
+            scores = sklearn.model_selection.cross_val_score(model, X, y, 
+                                                            scoring="neg_mean_squared_error", cv=k_folds)
+            score = np.mean(scores)
+            results[score] = params
+
+    best_params = max(results.items(), key=lambda x: x[0])[1]
+
     # ========================
 
     return best_params

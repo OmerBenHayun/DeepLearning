@@ -98,26 +98,31 @@ means that the overfitting is not as significant.
 part4_q1 = r"""
 **Your answer:**
 
+The Y (vertical) axis in a residual plot denotes the error between the ground-truth data and the predicted
+data, therefore the ideal plot would be where all the points are located exactly on the X (horizontal)
+axis, because it would mean that our model predicts the ground-truth values with 100% accuracy.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+We can use the residual plots to get a sense of our model's fitness, by looking at the percentage of samples
+that are within the acceptable error margin (1 standard deviation from the mean in our case).
+Using this metric, we can see that the model we got after cross validation works better that the one trained
+only on the top-5 features, as the samples are closer to the horizontal axis, which means that overall its
+prediction error is lower.
 
 """
 
 part4_q2 = r"""
 **Your answer:**
 
+1. Searching for the optimal $\lambda$ on a logarithmic scale is better than searching on a linear scale, because
+we are looking for the order of magnitude of the regularization factor, rather than an exact value. It works because 
+the values taken from logspace would be equally spaced between orders of magnitude (for example, the amount of values 
+in the range [0.01, 0.1] will be the same as the amount of values in the range [0.1, 1.0]). However, if we were to
+use a linear space, we will need to either run an enormous amount of fittings, or give up on the resolution of the 
+search.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. There are 3 possible $degree$ values, and 20 possible $reg\_lambda$ values, so in total we tested $3\times20=60$ 
+hyperparameter combinations. For each set of hyperparameters, we ran the model on $k=3$ folds, so in total we fitted 
+the model $60\times3=\bf{180}$ times.
 
 """
 
