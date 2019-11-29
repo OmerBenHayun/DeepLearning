@@ -125,9 +125,9 @@ class Linear(Block):
         #  You should accumulate gradients in dw and db.
         # ====== YOUR CODE: ======
         dx = torch.mm(dout, self.w.t())
-        self.db = torch.sum(dout, axis=0)
-        self.dw = torch.mm(x.t(), dout)
 
+        self.db.data = torch.sum(dout, axis=0).data
+        self.dw.data = torch.mm(x.t(), dout).data
         # ========================
 
         return dx

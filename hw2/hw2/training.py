@@ -73,7 +73,27 @@ class Trainer(abc.ABC):
             #    save the model to the file specified by the checkpoints
             #    argument.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            train_res = self.train_epoch(dl_train, **kw)
+            test_res = self.test_epoch(dl_test, **kw)
+
+            train_loss.append(sum(train_res.losses) / len(train_res.losses))
+            train_acc.append(train_res.accuracy)
+            test_loss.append(sum(test_res.losses) / len(test_res.losses))
+            test_acc.append(test_res.accuracy)
+
+            if best_acc is None:
+                best_acc = test_res.accuracy
+            best_acc = max(best_acc, test_res.accuracy)
+
+            if len(test_loss) > 2:
+                if test_loss[-1] >= test_loss[-2]:
+                    epochs_without_improvement += 1
+                else:
+                    epochs_without_improvement = 0
+            
+            if early_stopping:
+                if epochs_without_improvement >= early_stopping:
+                    break
             # ========================
 
         return FitResult(actual_num_epochs,
@@ -189,7 +209,15 @@ class BlocksTrainer(Trainer):
         #  - Optimize params
         #  - Calculate number of correct predictions
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = self.model.forward(X)
+
+        loss = self.loss_fn(out, y)
+        loss_grad = self.loss_fn.backward(loss)
+
+        self.model.backward(loss_grad)
+        self.optimizer.step()
+
+        num_correct = (torch.argmax(out, dim=1) == y).sum().item()
         # ========================
 
         return BatchResult(loss, num_correct)
@@ -201,7 +229,10 @@ class BlocksTrainer(Trainer):
         #  - Forward pass
         #  - Calculate number of correct predictions
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = self.model.forward(X)
+
+        loss = self.loss_fn(out, y)
+        num_correct = (torch.argmax(out, dim=1) == y).sum().item()
         # ========================
 
         return BatchResult(loss, num_correct)
