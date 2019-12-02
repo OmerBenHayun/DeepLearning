@@ -76,9 +76,9 @@ class Trainer(abc.ABC):
             train_res = self.train_epoch(dl_train, **kw)
             test_res = self.test_epoch(dl_test, **kw)
 
-            train_loss.append(sum(train_res.losses) / len(train_res.losses))
+            train_loss.extend(train_res.losses)
             train_acc.append(train_res.accuracy)
-            test_loss.append(sum(test_res.losses) / len(test_res.losses))
+            test_loss.extend(test_res.losses)
             test_acc.append(test_res.accuracy)
 
             if best_acc is None:

@@ -315,7 +315,15 @@ class Dropout(Block):
         #  Notice that contrary to previous blocks, this block behaves
         #  differently a according to the current training_mode (train/test).
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.alive = torch.rand(1).item() < self.p
+
+        if self.training_mode:
+            if self.alive:
+                out = torch.zeros_like(x)
+            else:
+                out = (1 / (1 - self.p)) * x
+        else:
+            out = x.clone()
         # ========================
 
         return out
@@ -323,7 +331,9 @@ class Dropout(Block):
     def backward(self, dout):
         # TODO: Implement the dropout backward pass.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        dx = torch.zeros_like(dout)
+        if self.alive:
+            dx += dout
         # ========================
 
         return dx
@@ -432,7 +442,7 @@ class MLP(Block):
         for h1, h2 in zip(hidden_features, hidden_features[1:]):
             blocks.append(Linear(h1, h2))
             blocks.append(activation_layer())
-            if dropout:
+            if dropout > 0:
                 blocks.append(Dropout(dropout))
         blocks.append(Linear(h2, num_classes))
         # ========================
