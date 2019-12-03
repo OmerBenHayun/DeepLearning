@@ -212,6 +212,8 @@ class BlocksTrainer(Trainer):
         out = self.model.forward(X)
 
         loss = self.loss_fn(out, y)
+        self.optimizer.zero_grad()
+
         loss_grad = self.loss_fn.backward(loss)
 
         self.model.backward(loss_grad)

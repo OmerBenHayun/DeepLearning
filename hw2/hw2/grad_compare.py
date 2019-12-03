@@ -19,6 +19,8 @@ def compare_block_to_torch(block: blocks.Block, x, y=None, seed=42):
     # the same input
     for t, _ in (block.params() + [(x, None)]):
         t.requires_grad = True
+        if t.grad is not None:
+            t.grad.data.zero_()
 
     torch.manual_seed(seed)
     z = block(x, y=y)
