@@ -126,8 +126,8 @@ class Linear(Block):
         # ====== YOUR CODE: ======
         dx = torch.mm(dout, self.w.t())
 
-        self.db.data = torch.sum(dout, axis=0).data
-        self.dw.data = torch.mm(x.t(), dout).data
+        self.db += torch.sum(dout, axis=0)
+        self.dw += torch.mm(x.t(), dout)
         # ========================
 
         return dx
