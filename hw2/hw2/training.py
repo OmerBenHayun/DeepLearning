@@ -76,9 +76,9 @@ class Trainer(abc.ABC):
             train_res = self.train_epoch(dl_train, **kw)
             test_res = self.test_epoch(dl_test, **kw)
 
-            train_loss.extend(train_res.losses)
+            train_loss.append(sum(train_res.losses)/dl_train.batch_size)
             train_acc.append(train_res.accuracy)
-            test_loss.extend(test_res.losses)
+            test_loss.append(sum(test_res.losses)/dl_test.batch_size)
             test_acc.append(test_res.accuracy)
 
             if best_acc is None:
@@ -268,7 +268,7 @@ class TorchTrainer(Trainer):
 
         # Optimization step
         self.optimizer.step()
-
+        loss = loss.item()
         num_correct = (torch.argmax(out, dim=1) == y).sum().item()
         # ========================
 
@@ -286,7 +286,7 @@ class TorchTrainer(Trainer):
             #  - Calculate number of correct predictions
             # ====== YOUR CODE: ======
             out = self.model(X)
-            loss = self.loss_fn(out, y)
+            loss = self.loss_fn(out, y).item()
 
             num_correct = (torch.argmax(out, dim=1) == y).sum().item()
             # ========================
