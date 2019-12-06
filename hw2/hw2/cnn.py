@@ -45,7 +45,12 @@ class ConvClassifier(nn.Module):
         #  Note: If N is not divisible by P, then N mod P additional
         #  CONV->ReLUs should exist at the end, without a MaxPool after them.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        channels = [in_channels, *self.channels]
+        for i, (conv_in_channels, conv_out_channels) in enumerate(zip(channels, channels[1:])):
+            layers.append(nn.Conv2d(conv_in_channels, conv_out_channels, kernel_size=3, padding=1))
+            layers.append(nn.ReLU())
+            if (i + 1) % self.pool_every == 0:
+                layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
 
         # ========================
         seq = nn.Sequential(*layers)
@@ -61,7 +66,16 @@ class ConvClassifier(nn.Module):
         #  the first linear layer.
         #  The last Linear layer should have an output dim of out_classes.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        in_features_divider = len(self.channels) // self.pool_every
+        in_features_h = in_h / (2 ** in_features_divider)
+        in_features_w = in_w / (2 ** in_features_divider)
+        in_features_channels = self.channels[-1]
+        dims = [int(in_features_h * in_features_w * in_features_channels), *self.hidden_dims]
+        for h1, h2 in zip(dims, dims[1:]):
+            layers.append(nn.Linear(h1, h2))
+            layers.append(nn.ReLU())
+        layers.append(nn.Linear(h2, self.out_classes))
+
         # ========================
         seq = nn.Sequential(*layers)
         return seq
@@ -71,7 +85,9 @@ class ConvClassifier(nn.Module):
         #  Extract features from the input, run the classifier on them and
         #  return class scores.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        features = self.feature_extractor.forward(x)
+        features = features.view(features.shape[0], -1)
+        out = self.classifier(features)
         # ========================
         return out
 
@@ -156,5 +172,5 @@ class YourCodeNet(ConvClassifier):
     #  For example, add batchnorm, dropout, skip connections, change conv
     #  filter sizes etc.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+        raise NotImplementedError()
     # ========================
