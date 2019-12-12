@@ -86,7 +86,7 @@ class Trainer(abc.ABC):
             best_acc = max(best_acc, test_res.accuracy)
 
             if last_loss is not None:
-               if sum(test_res.losses) / len(test_res.losses)>= last_loss:
+                if sum(test_res.losses) / len(test_res.losses) >= last_loss:
                     epochs_without_improvement += 1
                 else:
                     epochs_without_improvement = 0
