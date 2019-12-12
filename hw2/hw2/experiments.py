@@ -64,15 +64,14 @@ def run_experiment(run_name, out_dir='./results', seed=None, device=None,
     #   for you automatically.
     fit_res = None
     # ====== YOUR CODE: ======
-    x0, _ = ds_train[0]
+    x0, y0 = ds_train[0]
     in_size = x0.shape
-    num_classes = 10
+    num_classes = len(ds_train.classes)
     channels = [ele for ele in filters_per_layer for _ in range(layers_per_block)]
-
     model = model_cls(in_size=in_size, out_classes=num_classes, channels=channels,
                       pool_every=pool_every, hidden_dims=hidden_dims)
     loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=reg)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=reg)
     trainer = training.TorchTrainer(model, loss_fn, optimizer, device)
 
     dl_train = torch.utils.data.DataLoader(ds_train, bs_train, shuffle=False)

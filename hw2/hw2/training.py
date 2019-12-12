@@ -57,7 +57,7 @@ class Trainer(abc.ABC):
 
         best_acc = None
         epochs_without_improvement = 0
-
+        last_loss = None
         for epoch in range(num_epochs):
             verbose = False  # pass this to train/test_epoch.
             if epoch % print_every == 0 or epoch == num_epochs-1:
@@ -76,20 +76,21 @@ class Trainer(abc.ABC):
             train_res = self.train_epoch(dl_train, **kw)
             test_res = self.test_epoch(dl_test, **kw)
 
-            train_loss.append(sum(train_res.losses)/dl_train.batch_size)
+            train_loss.extend(train_res.losses)
             train_acc.append(train_res.accuracy)
-            test_loss.append(sum(test_res.losses)/dl_test.batch_size)
+            test_loss.extend(test_res.losses)
             test_acc.append(test_res.accuracy)
 
             if best_acc is None:
                 best_acc = test_res.accuracy
             best_acc = max(best_acc, test_res.accuracy)
 
-            if len(test_loss) > 2:
-                if test_loss[-1] >= test_loss[-2]:
+            if last_loss is not None:
+               if sum(test_res.losses) / len(test_res.losses)>= last_loss:
                     epochs_without_improvement += 1
                 else:
                     epochs_without_improvement = 0
+            last_loss = sum(test_res.losses) / len(test_res.losses)
             
             if early_stopping:
                 if epochs_without_improvement >= early_stopping:
@@ -219,6 +220,7 @@ class BlocksTrainer(Trainer):
         self.model.backward(loss_grad)
         self.optimizer.step()
 
+        loss = loss.item()
         num_correct = (torch.argmax(out, dim=1) == y).sum().item()
         # ========================
 
@@ -233,7 +235,7 @@ class BlocksTrainer(Trainer):
         # ====== YOUR CODE: ======
         out = self.model.forward(X)
 
-        loss = self.loss_fn(out, y)
+        loss = self.loss_fn(out, y).item()
         num_correct = (torch.argmax(out, dim=1) == y).sum().item()
         # ========================
 
@@ -268,6 +270,7 @@ class TorchTrainer(Trainer):
 
         # Optimization step
         self.optimizer.step()
+
         loss = loss.item()
         num_correct = (torch.argmax(out, dim=1) == y).sum().item()
         # ========================

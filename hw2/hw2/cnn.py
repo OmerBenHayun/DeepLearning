@@ -126,7 +126,23 @@ class ResidualBlock(nn.Module):
         #  Use convolutions which preserve the spatial extent of the input.
         #  For simplicity of implementation, we'll assume kernel sizes are odd.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        channels = (in_channels, *channels)
+        main_path_layers = []
+        for (h1, h2, size) in zip(channels, channels[1:-1], kernel_sizes):
+            main_path_layers.append(nn.Conv2d(h1, h2, size, padding=size//2))
+            if dropout > 0:
+                main_path_layers.append(nn.Dropout2d(dropout))
+            if batchnorm:
+                main_path_layers.append(nn.BatchNorm2d(h2))
+            main_path_layers.append(nn.ReLU())
+        main_path_layers.append(nn.Conv2d(channels[-2], channels[-1], kernel_sizes[-1], padding=kernel_sizes[-1] // 2))
+        self.main_path = nn.Sequential(*main_path_layers)
+
+        skip_layers = []
+        if channels[0] != channels[-1]:
+            skip_layers.append(nn.Conv2d(channels[0], channels[-1], 1, bias=False))
+        self.shortcut_path = nn.Sequential(*skip_layers)
+
         # ========================
 
     def forward(self, x):
@@ -155,7 +171,15 @@ class ResNetClassifier(ConvClassifier):
         #  CONV->ReLUs (with a skip over them) should exist at the end,
         #  without a MaxPool after them.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        channels = [in_channels, *self.channels]
+        kernel_sizes = [3]*self.pool_every
+        for i in range(0, len(self.channels)-self.pool_every + 1, self.pool_every):
+            layers.append(ResidualBlock(channels[i], channels[i + 1:i + self.pool_every + 1], kernel_sizes))
+            layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+
+        remainder = len(self.channels) % self.pool_every
+        if remainder:
+            layers.append(ResidualBlock(channels[-remainder - 1], channels[-remainder:], kernel_sizes[:remainder]))
         # ========================
         seq = nn.Sequential(*layers)
         return seq
