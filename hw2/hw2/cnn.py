@@ -67,8 +67,8 @@ class ConvClassifier(nn.Module):
         #  The last Linear layer should have an output dim of out_classes.
         # ====== YOUR CODE: ======
         in_features_divider = len(self.channels) // self.pool_every
-        in_features_h = in_h / (2 ** in_features_divider)
-        in_features_w = in_w / (2 ** in_features_divider)
+        in_features_h = in_h // (2 ** in_features_divider)
+        in_features_w = in_w // (2 ** in_features_divider)
         in_features_channels = self.channels[-1]
         dims = [int(in_features_h * in_features_w * in_features_channels), *self.hidden_dims]
         for h1, h2 in zip(dims, dims[1:]):
@@ -129,7 +129,7 @@ class ResidualBlock(nn.Module):
         channels = (in_channels, *channels)
         main_path_layers = []
         for (h1, h2, size) in zip(channels, channels[1:-1], kernel_sizes):
-            main_path_layers.append(nn.Conv2d(h1, h2, size, padding=size//2))
+            main_path_layers.append(nn.Conv2d(h1, h2, size, padding=size // 2))
             if dropout > 0:
                 main_path_layers.append(nn.Dropout2d(dropout))
             if batchnorm:
@@ -172,8 +172,8 @@ class ResNetClassifier(ConvClassifier):
         #  without a MaxPool after them.
         # ====== YOUR CODE: ======
         channels = [in_channels, *self.channels]
-        kernel_sizes = [3]*self.pool_every
-        for i in range(0, len(self.channels)-self.pool_every + 1, self.pool_every):
+        kernel_sizes = [3] * self.pool_every
+        for i in range(0, len(self.channels) - self.pool_every + 1, self.pool_every):
             layers.append(ResidualBlock(channels[i], channels[i + 1:i + self.pool_every + 1], kernel_sizes))
             layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
 
@@ -183,6 +183,70 @@ class ResNetClassifier(ConvClassifier):
         # ========================
         seq = nn.Sequential(*layers)
         return seq
+
+
+class InceptionBlock(nn.Module):
+
+    def __init__(self, in_channels: int, out_channels: int, batchnorm=False, dropout=0.):
+        """
+        :param in_channels: Number of input channels to the first convolution.
+        :param channels: Number of output channels for the entire block
+        :param batchnorm: True/False whether to apply BatchNorm between
+        convolutions.
+        :param dropout: Amount (p) of Dropout to apply between convolutions.
+        Zero means don't apply dropout.
+        """
+        super().__init__()
+
+        self.path1, self.path2, self.pool_path, self.shortcut_path = None, None, None, None
+
+        path1_layers = []
+        path1_layers.append(nn.Conv2d(in_channels, out_channels, 1))
+        if batchnorm:
+            path1_layers.append(nn.BatchNorm2d(out_channels))
+        path1_layers.append(nn.ReLU())
+        if dropout > 0:
+            path1_layers.append(nn.Dropout2d(dropout))
+        path1_layers.append(nn.Conv2d(out_channels, out_channels, 3, padding=1))
+        if batchnorm:
+            path1_layers.append(nn.BatchNorm2d(out_channels))
+        path1_layers.append(nn.ReLU())
+        if dropout > 0:
+            path1_layers.append(nn.Dropout2d(dropout))
+        self.path1 = nn.Sequential(*path1_layers)
+
+        path2_layers = []
+        path2_layers.append(nn.Conv2d(in_channels, out_channels, 1))
+        if batchnorm:
+            path2_layers.append(nn.BatchNorm2d(out_channels))
+        path2_layers.append(nn.ReLU())
+        if dropout > 0:
+            path2_layers.append(nn.Dropout2d(dropout))
+        path2_layers.append(nn.Conv2d(out_channels, out_channels, 5, padding=2))
+        if batchnorm:
+            path2_layers.append(nn.BatchNorm2d(out_channels))
+        path2_layers.append(nn.ReLU())
+        if dropout > 0:
+            path2_layers.append(nn.Dropout2d(dropout))
+        self.path2 = nn.Sequential(*path2_layers)
+
+        pool_layers = []
+        pool_layers.append(nn.MaxPool2d(kernel_size=3, stride=1, padding=1))
+        pool_layers.append(nn.Conv2d(in_channels, out_channels, 1, bias=False))
+        self.pool_path = nn.Sequential(*pool_layers)
+
+        shortcut_path_layers = []
+        if in_channels != out_channels:
+            shortcut_path_layers.append(nn.Conv2d(in_channels, out_channels, 1, bias=False))
+        self.shortcut_path = nn.Sequential(*shortcut_path_layers)
+
+    def forward(self, x):
+        out = self.path1(x)
+        out += self.path2(x)
+        out += self.pool_path(x)
+        out += self.shortcut_path(x)
+        out = torch.relu(out)
+        return out
 
 
 class YourCodeNet(ConvClassifier):
@@ -196,5 +260,37 @@ class YourCodeNet(ConvClassifier):
     #  For example, add batchnorm, dropout, skip connections, change conv
     #  filter sizes etc.
     # ====== YOUR CODE: ======
-        raise NotImplementedError()
-    # ========================
+    def _make_feature_extractor(self):
+        in_channels, in_h, in_w, = tuple(self.in_size)
+
+        layers = []
+        dropout = 0.1
+        num_layers = len(self.channels)
+        channels = [in_channels, *self.channels]
+        for i, (h1, h2) in enumerate(zip(channels, channels[1:])):
+            layers.append(InceptionBlock(h1, h2, batchnorm=True, dropout=dropout))
+            if (i + 1) % self.pool_every == 0:
+                layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+            dropout += 0.3 / num_layers  # dropout will reach 0.4 at the end
+
+        """self.pool_every *= 3
+        in_channels, in_h, in_w, = tuple(self.in_size)
+        dropout = 0.1
+        layers = []
+        num_layers = len(self.channels)
+        channels = [in_channels, *self.channels]
+        kernel_sizes = [3] * 3
+        for i in range(0, len(self.channels) - 3 + 1, 3):
+            layers.append(ResidualBlock(channels[i], channels[i + 1:i + 3 + 1], kernel_sizes, batchnorm=True,
+                                        dropout=dropout))  # each residual block is 3 conv size
+
+            dropout += 0.6 / num_layers  # dropout will reach 0.4 at the end
+            # we will add pooling after pool_every residual blocks
+            if (i + 3) % self.pool_every == 0:
+                layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+        remainder = num_layers % 3
+        if remainder:
+            layers.append(ResidualBlock(channels[-remainder - 1], channels[-remainder:], kernel_sizes[:remainder],
+                                        batchnorm=True))"""
+        seq = nn.Sequential(*layers)
+        return seq
