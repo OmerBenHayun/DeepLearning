@@ -75,67 +75,56 @@ test samples that were previously classified incorrectly, with low confidence wh
 # Part 3 answers
 
 part3_q1 = r"""
-**Your answer:**
+1. In our case depth of 2 or 4 layers produced the best result. 
+Theoretically, increasing the depth should increase our accuracy, because deeper networks have larger number of parameters,
+which help the network to achieve better representation of the world.
+But there are a few problems that arises when we make our network deeper, one of them is vanishing gradient or gradient explosion,
+which causes the network to be untrainable.
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. For the values of 8 or 16 the network was untrainable. The reason those networks were untrainable was because
+of vanishing gradients.
+Our network consists of convolution layers, and the deeper the network is, the higher the number of convolution layers
+we would have to backpropagate through. Each of those layers will cause our gradients to become smaller, resulting
+in zero gradient returning to the parameters, which causes the network to learn nothing.
+One solution to this problem is skip connection, which allows the gradient to flow freely through the layers,
+this is implemented in residual blocks.
+Second solution might be to pre-train the first few layers of the network (those are the layers which receives zero 
+gradients) on our data set, and then add all the other layers to the training, this will train the first few layers
+to extract features from the images and they will only be fine tuned at the second part of training.
 
 """
 
 part3_q2 = r"""
-**Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+First of all we can see from the results that the networks with depth of 8 didn`t learn anything, this happened 
+for the same reasons we stated in the previous question.
+We can also see in the graphs that the deeper the network is, the higher the number of filters in each layer it prefers.
+We can see that the best result on the test set in the 2-layer network was with 32 filters in each layer,
+and the best result on the test set in the 4-layer network was with 256 filters in each layer 
+Having more filters will mean having more parameters in our network, which like depth of the network, helps us 
+learn more complex function and representation of our problem.
 """
 
 part3_q3 = r"""
-**Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+As we can see from the results, for depth of 9 or 12 layers, the network was untrainable, again for the same reasons 
+we stated before (vanishing gradients)
 
 """
 
 part3_q4 = r"""
-**Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+In contrary to the previous questions , in this part all of our networks were able to train, even the 32-layers netwrok.
+This is different than before because of one main reason, which is the use of residual network, which have skip connection
+between every few convolution layers that helped the gradients to flow freely from layer to layer.
+For this reason the network was able to train.
 
 """
 
 part3_q5 = r"""
-**Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+1. We implemented the inception block in our network.
+Each block consists of four different paths, the first 2 path are normal convolutions layers with different 
+kernel sizes , third path is a pooling path and the last path is the shortcut path.
+For each layer we have also added batch normalization layer and dropout layer after each convolution layer.
+2. First of all we can see that our architecture has achieved higher accuracy than the networks we previously 
+tested. We can also see that due to the skip connection we added in each layer, the network was able to train
+even with 36 layers.
 """
 # ==============

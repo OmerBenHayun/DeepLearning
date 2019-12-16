@@ -273,24 +273,5 @@ class YourCodeNet(ConvClassifier):
                 layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
             dropout += 0.3 / num_layers  # dropout will reach 0.4 at the end
 
-        """self.pool_every *= 3
-        in_channels, in_h, in_w, = tuple(self.in_size)
-        dropout = 0.1
-        layers = []
-        num_layers = len(self.channels)
-        channels = [in_channels, *self.channels]
-        kernel_sizes = [3] * 3
-        for i in range(0, len(self.channels) - 3 + 1, 3):
-            layers.append(ResidualBlock(channels[i], channels[i + 1:i + 3 + 1], kernel_sizes, batchnorm=True,
-                                        dropout=dropout))  # each residual block is 3 conv size
-
-            dropout += 0.6 / num_layers  # dropout will reach 0.4 at the end
-            # we will add pooling after pool_every residual blocks
-            if (i + 3) % self.pool_every == 0:
-                layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-        remainder = num_layers % 3
-        if remainder:
-            layers.append(ResidualBlock(channels[-remainder - 1], channels[-remainder:], kernel_sizes[:remainder],
-                                        batchnorm=True))"""
         seq = nn.Sequential(*layers)
         return seq
