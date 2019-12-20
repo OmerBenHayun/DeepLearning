@@ -88,9 +88,8 @@ we would have to backpropagate through. Each of those layers will cause our grad
 in zero gradient returning to the parameters, which causes the network to learn nothing.
 One solution to this problem is skip connection, which allows the gradient to flow freely through the layers,
 this is implemented in residual blocks.
-Second solution might be to pre-train the first few layers of the network (those are the layers which receives zero 
-gradients) on our data set, and then add all the other layers to the training, this will train the first few layers
-to extract features from the images and they will only be fine tuned at the second part of training.
+Second solution is using better initialization  to our parameters.
+For example using Xavier initialization. This will make training possible even in those deep networks.
 
 """
 
@@ -101,17 +100,23 @@ We can also see in the graphs that the deeper the network is, the higher the num
 We can see that the best result on the test set in the 2-layer network was with 32 filters in each layer,
 and the best result on the test set in the 4-layer network was with 256 filters in each layer 
 Having more filters will mean having more parameters in our network, which like depth of the network, helps us 
-learn more complex function and representation of our problem.
+learn more complex function and representation of our problem, but in our network, specially in the 2-layer network,
+the complex of the function we can represent is lower because of the low depth, so having more parameters might not
+help (some filters might learn the same features and therefor are useless)
 """
 
 part3_q3 = r"""
 As we can see from the results, for depth of 9 or 12 layers, the network was untrainable, again for the same reasons 
 we stated before (vanishing gradients)
+We can see in the results for L=1,2 that for L=2 our network was overfitting our train set, while the network with
+L=1 did not. (for L=2 we got 90% accuracy for train set while only around 55% accuracy for test set).
+This might happen when we have to many parameters and not deep enough network (the function it can represent is not
+complex enough)
 
 """
 
 part3_q4 = r"""
-In contrary to the previous questions , in this part all of our networks were able to train, even the 32-layers netwrok.
+In contrary to the previous questions , in this part all of our networks were able to train, even the 32-layers network.
 This is different than before because of one main reason, which is the use of residual network, which have skip connection
 between every few convolution layers that helped the gradients to flow freely from layer to layer.
 For this reason the network was able to train.
