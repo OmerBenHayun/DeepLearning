@@ -110,8 +110,9 @@ As we can see from the results, for depth of 9 or 12 layers, the network was unt
 we stated before (vanishing gradients)
 We can see in the results for L=1,2 that for L=2 our network was overfitting our train set, while the network with
 L=1 did not. (for L=2 we got 90% accuracy for train set while only around 55% accuracy for test set).
-This might happen when we have to many parameters and not deep enough network (the function it can represent is not
-complex enough)
+The reason for it is probably that the network with L=2 had enough parameters to learn in order to represent a more 
+complex function that is adjusted specifically for the training data, whereas the network with L=1 didn't have so many, 
+and was forced to find a simpler function, which had to be more generalized.
 
 """
 
@@ -121,6 +122,9 @@ This is different than before because of one main reason, which is the use of re
 between every few convolution layers that helped the gradients to flow freely from layer to layer.
 For this reason the network was able to train.
 
+We can see that in the first part (when K=[32]), the shallower networks (L=8 and L=16) quickly converge, in contrast to the deeper L=32 network that steadily improves, much slower than the shallower networks. This is probably because the deeper network has more blocks (which means more parameters), and it allows it to make better representations of the data, and it slowly trains this relatively large amount of parameters, whereas the shallower networks don't have that many parameters and therefore they quickly converge on the optimal ones.
+
+In the second part (K=[64,128,256]), each block has many convolutions, and overall the networks have more parameters to train than the shallow networks from the previous part. We can see from the graphs that this increased number parameters prevents the very quick convergence like we have seen in the previous part. However, we still see that the shallower networks converge quicker than the deeper, with the deeper increasing more gradually than the others.
 """
 
 part3_q5 = r"""
