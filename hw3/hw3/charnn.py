@@ -144,10 +144,10 @@ def hot_softmax(y, dim=0, temperature=1.0):
     """
     # TODO: Implement based on the above.
     # ====== YOUR CODE: ======
-    temperature = y / temperature
-    exp_scores = torch.exp(temperature)
-    scores_sum = torch.sum(exp_scores, dim=dim)
-    result = exp_scores / scores_sum
+
+    temp_y = y / temperature
+    result = torch.nn.functional.softmax(temp_y, dim=dim)
+
     # ========================
     return result
 
@@ -183,16 +183,16 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     #  necessary for this. Best to disable tracking for speed.
     #  See torch.no_grad().
     # ====== YOUR CODE: ======
-    torch.no_grad()
-    y_hot = chars_to_onehot(start_sequence, char_to_idx).to(dtype=torch.float)
-    while len(out_text) < n_chars:
-        y, hs = model(y_hot.unsqueeze(0))
-        y_probabilities = hot_softmax(y[0, -1, :], dim=-1, temperature=T)
-        y_hot = torch.zeros(len(char_to_idx))
-        index = torch.multinomial(y_probabilities, 1)
-        y_hot[index] = 1
-        y_hot = y_hot.unsqueeze(0)
-        out_text += idx_to_char[index.item()]
+    with torch.no_grad():
+        y_hot = chars_to_onehot(start_sequence, char_to_idx).to(dtype=torch.float)
+        while len(out_text) < n_chars:
+            y, hs = model(y_hot.unsqueeze(0))
+            y_probabilities = hot_softmax(y[0, -1, :], dim=-1, temperature=T)
+            y_hot = torch.zeros(len(char_to_idx))
+            index = torch.multinomial(y_probabilities, 1)
+            y_hot[index] = 1
+            y_hot = y_hot.unsqueeze(0)
+            out_text += idx_to_char[index.item()]
 
     # ========================
 
@@ -333,9 +333,7 @@ class MultilayerGRU(nn.Module):
         #  Tip: You can use torch.stack() to combine multiple tensors into a
         #  single tensor in a differentiable manner.
         # ====== YOUR CODE: ======
-        if hidden_state is None:
-            hidden_state = torch.zeros(batch_size, self.n_layers, self.h_dim)
-        layer_output = torch.zeros(batch_size, seq_len, self.out_dim)
+        layer_output = []
         for char_num in range(seq_len):
             module_input = layer_input[:, char_num, :]
             for layer_num in range(self.n_layers):
@@ -353,12 +351,13 @@ class MultilayerGRU(nn.Module):
                 z = layer_sigmoid_z(layer_xz(module_input) + layer_hz(layer_states[layer_num]))
                 r = layer_sigmoid_r(layer_xr(module_input) + layer_hr(layer_states[layer_num]))
                 g = layer_tanh(layer_xg(module_input) + layer_hg(r * layer_states[layer_num]))
-                h = layer_dropout(z * layer_states[layer_num] + (1 - z) * g)
+                h = z * layer_states[layer_num] + (1 - z) * g
                 layer_states[layer_num] = h
-                module_input = h
-                hidden_state[:, layer_num, :] = h
-            last_layer = self.layer_params[self.n_layers]
-            layer_output[:, char_num, :] = last_layer(layer_states[-1])
+                module_input = layer_dropout(h)
 
+            last_layer = self.layer_params[-1]
+            layer_output.append(last_layer(module_input))
+        layer_output = torch.stack(layer_output, dim=1)
+        hidden_state = torch.stack(layer_states, dim=1)
         # ========================
         return layer_output, hidden_state
