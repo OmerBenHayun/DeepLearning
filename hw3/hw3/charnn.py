@@ -185,8 +185,9 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     # ====== YOUR CODE: ======
     with torch.no_grad():
         y_hot = chars_to_onehot(start_sequence, char_to_idx).to(dtype=torch.float)
+        hs = None
         while len(out_text) < n_chars:
-            y, hs = model(y_hot.unsqueeze(0))
+            y, hs = model(y_hot.unsqueeze(0), hs)
             y_probabilities = hot_softmax(y[0, -1, :], dim=-1, temperature=T)
             y_hot = torch.zeros(len(char_to_idx))
             index = torch.multinomial(y_probabilities, 1)
