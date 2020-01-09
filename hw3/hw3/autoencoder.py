@@ -19,7 +19,36 @@ class EncoderCNN(nn.Module):
         #  use pooling or only strides, use any activation functions,
         #  use BN or Dropout, etc.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        block1 = nn.Sequential(
+            nn.Conv2d(in_channels, 64, 5, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+            #nn.BatchNorm2d(64),
+        )
+
+        block2 = nn.Sequential(
+            nn.Conv2d(64, 128, 5, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+            #nn.BatchNorm2d(128),
+        )
+
+        block3 = nn.Sequential(
+            nn.Conv2d(128, 256, 5, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+            #nn.BatchNorm2d(256),
+        )
+
+        block4 = nn.Sequential(
+            nn.Conv2d(256, out_channels, 1)
+        )
+
+        modules.append(block1)
+        modules.append(block2)
+        modules.append(block3)
+        modules.append(block4)
         # ========================
         self.cnn = nn.Sequential(*modules)
 
@@ -42,7 +71,35 @@ class DecoderCNN(nn.Module):
         #  output should be a batch of images, with same dimensions as the
         #  inputs to the Encoder were.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        block_re4 = nn.Sequential(
+            nn.ConvTranspose2d(in_channels, 256, 1)
+        )
+
+        block_re3 = nn.Sequential(
+            nn.Upsample(scale_factor=2),
+            nn.ConvTranspose2d(256, 128, 5, padding=2),
+            nn.ReLU()
+            #nn.BatchNorm2d(128),
+        )
+
+        block_re2 = nn.Sequential(
+            nn.Upsample(scale_factor=2),
+            nn.ConvTranspose2d(128, 64, 5, padding=2),
+            nn.ReLU()
+            #nn.BatchNorm2d(64),
+        )
+
+        block_re1 = nn.Sequential(
+            nn.Upsample(scale_factor=2),
+            nn.ConvTranspose2d(64, out_channels, 5, padding=2),
+            nn.ReLU()
+            #nn.BatchNorm2d(out_channels),
+        )
+
+        modules.append(block_re4)
+        modules.append(block_re3)
+        modules.append(block_re2)
+        modules.append(block_re1)
         # ========================
         self.cnn = nn.Sequential(*modules)
 
@@ -70,7 +127,10 @@ class VAE(nn.Module):
 
         # TODO: Add more layers as needed for encode() and decode().
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.mu_net = nn.Linear(n_features, z_dim, bias=True)
+        self.log_sigma2_net = nn.Linear(n_features, z_dim, bias=True)
+
+        self.z_to_features = nn.Linear(z_dim, n_features, bias=True)
         # ========================
 
     def _check_features(self, in_size):
@@ -91,7 +151,13 @@ class VAE(nn.Module):
         #     log_sigma2 (mean and log variance) of q(Z|x).
         #  2. Apply the reparametrization trick to obtain z.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        latent_rep = self.features_encoder(x).view(x.shape[0], -1)
+        mu = self.mu_net(latent_rep)
+        log_sigma2 = self.log_sigma2_net(latent_rep)
+        
+        sigma = torch.exp(log_sigma2 / 2)
+        u = torch.normal(mean=0, std=1, size=sigma.shape, device=sigma.device)
+        z = mu + sigma * u
         # ========================
 
         return z, mu, log_sigma2
@@ -102,7 +168,9 @@ class VAE(nn.Module):
         #  1. Convert latent z to features h with a linear layer.
         #  2. Apply features decoder.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        features = self.z_to_features(z)
+        features_reshaped = features.view(z.shape[0], *self.features_shape)
+        x_rec = self.features_decoder(features_reshaped)
         # ========================
 
         # Scale to [-1, 1] (same dynamic range as original images).
@@ -151,7 +219,12 @@ def vae_loss(x, xr, z_mu, z_log_sigma2, x_sigma2):
     #  1. The covariance matrix of the posterior is diagonal.
     #  2. You need to average over the batch dimension.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    #raise NotImplementedError()
+    sigma = torch.exp(z_log_sigma2 / 2)
+    u = torch.normal(mean=0, std=1, size=sigma.shape, device=sigma.device)
+    z = z_mu + sigma * u
+
+    data_loss = (1 / (x_sigma2 * x.shape[0])) * torch.dot(x - z) # squared!!!
     # ========================
 
     return loss, data_loss, kldiv_loss
