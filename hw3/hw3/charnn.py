@@ -119,7 +119,7 @@ def chars_to_labelled_samples(text: str, char_to_idx: dict, seq_len: int,
     #  3. Create the labels tensor in a similar way and convert to indices.
     #  Note that no explicit loops are required to implement this function.
     # ====== YOUR CODE: ======
-    embedded_text = chars_to_onehot(text, char_to_idx)
+    embedded_text = chars_to_onehot(text, char_to_idx).to(device)
     access = (len(text) - 1) % seq_len
     labels_text = embedded_text[1:]  # removing first char from labels and last char from samples
     samples_text = embedded_text[:-1]
@@ -184,12 +184,14 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     #  See torch.no_grad().
     # ====== YOUR CODE: ======
     with torch.no_grad():
-        y_hot = chars_to_onehot(start_sequence, char_to_idx).to(dtype=torch.float)
+        if start_sequence == '':
+            start_sequence = ' '
+        y_hot = chars_to_onehot(start_sequence, char_to_idx).to(dtype=torch.float).to(device)
         hs = None
         while len(out_text) < n_chars:
             y, hs = model(y_hot.unsqueeze(0), hs)
             y_probabilities = hot_softmax(y[0, -1, :], dim=-1, temperature=T)
-            y_hot = torch.zeros(len(char_to_idx))
+            y_hot = torch.zeros(len(char_to_idx)).to(device)
             index = torch.multinomial(y_probabilities, 1)
             y_hot[index] = 1
             y_hot = y_hot.unsqueeze(0)
