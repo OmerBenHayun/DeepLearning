@@ -18,12 +18,12 @@ def part1_rnn_hyperparams():
     # ====== YOUR CODE: ======
     hypers['batch_size'] = 512
     hypers['seq_len'] = 64
-    hypers['h_dim'] = 128
-    hypers['n_layers'] = 2
+    hypers['h_dim'] = 256
+    hypers['n_layers'] = 3
     hypers['dropout'] = 0.4
     hypers['learn_rate'] = 0.001
-    hypers['lr_sched_factor'] = 0.5
-    hypers['lr_sched_patience'] = 3
+    hypers['lr_sched_factor'] = 0.1
+    hypers['lr_sched_patience'] = 1
     # ========================
     return hypers
 
@@ -33,7 +33,7 @@ def part1_generation_params():
     temperature = .0001
     # TODO: Tweak the parameters to generate a literary masterpiece.
     # ====== YOUR CODE: ======
-    start_seq = "SCENE"
+    start_seq = "ACT"
     temperature = .001
     # ========================
     return start_seq, temperature
@@ -166,7 +166,15 @@ def part3_gan_hyperparams():
     )
     # TODO: Tweak the hyperparameters to train your GAN.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    hypers['batch_size'] = 32
+    hypers['z_dim'] = 100
+    hypers['data_label'] = 1
+    hypers['label_noise'] = 0.2
+    hypers['discriminator_optimizer']['type'] = 'Adam'
+    hypers['discriminator_optimizer']['lr'] = 0.001
+    hypers['generator_optimizer']['type'] = 'Adam'
+    hypers['generator_optimizer']['lr'] = 0.001
+
     # ========================
     return hypers
 
