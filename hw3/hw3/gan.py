@@ -55,7 +55,6 @@ class Discriminator(nn.Module):
         #  with the loss due to improved numerical stability.
         # ====== YOUR CODE: ======
         downscaled = self.downscaler(x)
-
         reshaped = downscaled.view([x.shape[0], -1])
         y = self.final_layer(reshaped)
         # ========================
@@ -128,7 +127,9 @@ class Generator(nn.Module):
         input_batch = torch.randn(n, self.z_dim, requires_grad=with_grad).to(device)
         samples = self.forward(input_batch)
 
-        torch.autograd.set_grad_enabled(True)
+        if not with_grad:
+            torch.autograd.set_grad_enabled(True)
+
         # ========================
         return samples
 
@@ -145,8 +146,7 @@ class Generator(nn.Module):
         projected = self.projection_layer(z)
         reshaped = projected.view([z.shape[0], self.first_channels,
                                    self.first_featuremap_size, self.first_featuremap_size])
-        generated = self.upscaler(reshaped)
-        x = ((1 + generated) * 256) // 2
+        x = self.upscaler(reshaped)
         # ========================
         return x
 
@@ -176,8 +176,8 @@ def discriminator_loss_fn(y_data, y_generated, data_label=0, label_noise=0.0):
     data_noise = torch.rand(*y_data.shape) * label_noise - (label_noise / 2)
     generated_noise = torch.rand(*y_data.shape) * label_noise - (label_noise / 2)
 
-    loss_data = loss_fn(y_data.to(device), (data_noise + data_label).to(device))
-    loss_generated = loss_fn(y_generated.to(device), (generated_noise + (1 - data_label)).to(device))
+    loss_data = loss_fn(y_data, (data_noise + data_label).to(device))
+    loss_generated = loss_fn(y_generated, (generated_noise + (1 - data_label)).to(device))
     # ========================
     return loss_data + loss_generated
 
@@ -200,7 +200,7 @@ def generator_loss_fn(y_generated, data_label=0):
     # ====== YOUR CODE: ======
     device = y_generated.device
     loss_fn = nn.BCEWithLogitsLoss()
-    loss = loss_fn(y_generated.to(device), (torch.ones(*y_generated.shape) * data_label).to(device))
+    loss = loss_fn(y_generated, torch.full_like(y_generated, data_label, device=device))
     # ========================
     return loss
 
@@ -241,6 +241,8 @@ def train_batch(dsc_model: Discriminator, gen_model: Generator,
     # ====== YOUR CODE: ======
     gen_optimizer.zero_grad()
 
+    y_generated = dsc_model(generated_batch)
+
     gen_loss = gen_loss_fn(y_generated)
     gen_loss.backward()
 
@@ -275,10 +277,10 @@ def save_checkpoint(gen_model, dsc_losses, gen_losses, checkpoint_file):
             saved = False
 
     if saved and checkpoint_file is not None:
-        saved_state = dict(model_state=gen_model.state_dict())
+        saved_state = gen_model
         torch.save(saved_state, checkpoint_file)
         print(f'*** Saved checkpoint {checkpoint_file} '
-              f'at epoch {epoch + 1}')
+              f'at epoch {epoch}')
     # ========================
 
     return saved
