@@ -110,7 +110,12 @@ def part2_vae_hyperparams():
     )
     # TODO: Tweak the hyperparameters to generate a former president.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    hypers['batch_size'] = 1
+    hypers['h_dim'] = 32
+    hypers['z_dim'] = 10
+    hypers['x_sigma2'] = 1.0
+    hypers['learn_rate'] = 0.0001
+    hypers['betas'] = (0.9, 0.999)
     # ========================
     return hypers
 
@@ -118,26 +123,34 @@ def part2_vae_hyperparams():
 part2_q1 = r"""
 **Your answer:**
 
+When we calculate the reconstruction loss (= data loss) part of the total loss, we divide the MSE between
+the original image and the reconstructed image by ${\sigma}^2$ . Therefore, the hyperparameter ${\sigma}^2$ is
+used to adjust the weight we give to the reconstruction loss in the total loss.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+If the value of ${\sigma}^2$ is low, then the weight given to the data loss is high, and the consequence
+of that is that the output of the network (images reconstructed from latent space vector) will be more
+similar to the images that it was trained on.
+
+If the value of ${\sigma}^2$ is high, then the weight given to the data loss is low, and the consequence
+of that is that the output images will be more different from the training images, which means a more diverse
+space of output images, however if ${\sigma}^2$ is too small, then the output might not show the object that we
+wanted to represent.
 
 """
 
 part2_q2 = r"""
 **Your answer:**
 
+1. The VAE loss function is the sum of 2 measures:
+    - a reconstruction loss term - the MSE between the input image and the output image
+    - a KL-divergence term - a measure of how each component's normal distribution in the latent space is different from $N(0,1)$.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. The KL term in the loss function penalizes distributions that are different from $N(0,1)$ , and that leads to the distributions
+of the latent representations being close to the center of the latent space, and with deviations that are close to 1.
+
+3. The benefit of the latent representation distributions being encouraged to be close to the center of the latent space is that 
+when they are grouped, there is not much space between them, which means that the latent space can be considered continuous, and 
+that allows us to sample any vector from the distribution $N(0,1)$ , decode it and receive a viable result image.
 
 """
 

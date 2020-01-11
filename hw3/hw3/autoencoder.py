@@ -21,28 +21,25 @@ class EncoderCNN(nn.Module):
         # ====== YOUR CODE: ======
 
         block1 = nn.Sequential(
-            nn.Conv2d(in_channels, 64, 5, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-            #nn.BatchNorm2d(64),
+            nn.Conv2d(in_channels, 128, 4, stride=2, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(128),
         )
 
         block2 = nn.Sequential(
-            nn.Conv2d(64, 128, 5, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-            #nn.BatchNorm2d(128),
+            nn.Conv2d(128, 256, 4, stride=2, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(256),
         )
 
         block3 = nn.Sequential(
-            nn.Conv2d(128, 256, 5, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-            #nn.BatchNorm2d(256),
+            nn.Conv2d(256, 512, 4, stride=2, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(512),
         )
 
         block4 = nn.Sequential(
-            nn.Conv2d(256, out_channels, 1)
+            nn.Conv2d(512, out_channels, 4, stride=2, padding=1)
         )
 
         modules.append(block1)
@@ -72,28 +69,25 @@ class DecoderCNN(nn.Module):
         #  inputs to the Encoder were.
         # ====== YOUR CODE: ======
         block_re4 = nn.Sequential(
-            nn.ConvTranspose2d(in_channels, 256, 1)
+            nn.ConvTranspose2d(in_channels, 512, 4, stride=2, padding=1)
         )
 
         block_re3 = nn.Sequential(
-            nn.Upsample(scale_factor=2),
-            nn.ConvTranspose2d(256, 128, 5, padding=2),
-            nn.ReLU()
-            #nn.BatchNorm2d(128),
+            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(256)
         )
 
         block_re2 = nn.Sequential(
-            nn.Upsample(scale_factor=2),
-            nn.ConvTranspose2d(128, 64, 5, padding=2),
-            nn.ReLU()
-            #nn.BatchNorm2d(64),
+            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(128)
         )
 
         block_re1 = nn.Sequential(
-            nn.Upsample(scale_factor=2),
-            nn.ConvTranspose2d(64, out_channels, 5, padding=2),
-            nn.ReLU()
-            #nn.BatchNorm2d(out_channels),
+            nn.ConvTranspose2d(128, out_channels, 4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(out_channels)
         )
 
         modules.append(block_re4)
@@ -189,7 +183,8 @@ class VAE(nn.Module):
             #  Instead of sampling from N(psi(z), sigma2 I), we'll just take
             #  the mean, i.e. psi(z).
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            input_batch = torch.randn(n, self.z_dim).to(device)
+            samples = self.decode(input_batch).cpu()
             # ========================
         return samples
 
@@ -219,12 +214,21 @@ def vae_loss(x, xr, z_mu, z_log_sigma2, x_sigma2):
     #  1. The covariance matrix of the posterior is diagonal.
     #  2. You need to average over the batch dimension.
     # ====== YOUR CODE: ======
-    #raise NotImplementedError()
-    sigma = torch.exp(z_log_sigma2 / 2)
-    u = torch.normal(mean=0, std=1, size=sigma.shape, device=sigma.device)
-    z = z_mu + sigma * u
+    mse_fn = nn.MSELoss()
+    data_loss = mse_fn(xr, x) / x_sigma2
 
-    data_loss = (1 / (x_sigma2 * x.shape[0])) * torch.dot(x - z) # squared!!!
+    sigma = torch.exp(z_log_sigma2)
+    mu_2 = torch.mul(z_mu, z_mu)
+
+    tr_sigma = torch.sum(sigma, dim=1)
+    mu_norm_2 = torch.sum(mu_2, dim=1)
+    dz = z_mu.shape[1]
+    log_det_sigma = torch.sum(z_log_sigma2, dim=1)
+
+    kldiv_loss = tr_sigma + mu_norm_2 - dz - log_det_sigma
+    kldiv_loss = torch.mean(kldiv_loss)
+
+    loss = data_loss + kldiv_loss
     # ========================
 
     return loss, data_loss, kldiv_loss
