@@ -40,8 +40,8 @@ def part1_generation_params():
 
 
 part1_q1 = r"""
-We split the corpus into sequences instead of training on the entire text, because backpropagating 
-through the entire text will take too much time. 
+We split the corpus into sequences instead of training on the entire text, because of 2 reasons :
+1. Backpropagating through the entire text will take too much time. 
 We do one forward pass through our entire model for each character in the text, which mean passing through all
 the layers in the model until reaching the output layer.
 And for a sequence of characters, we will do forward pass for each character and pass the hidden state from each 
@@ -50,7 +50,9 @@ Which means that when we would like to backward through our model to train it, w
 time as well as through layers, and because we forward the hidden state from each character to the next one, we
 would backpropagte from the end of our sequence to the beginning of it. Which means (in case we dont split 
 the corpus) that we would have to backpropagte through millions of characters which is not doable.
-
+2. To avoid saving the entire corpus in memory.
+By splitting the corpus into sequences, we can keep only the current sequences in the memory instead of saving
+the entire corpus. 
 """
 
 part1_q2 = r"""
@@ -210,15 +212,17 @@ An equation: $e^{i\pi} -1 = 0$
 """
 
 part3_q2 = r"""
-**Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1.When training GAN model to generate images we shouldn`t stop training when the generator loss reach certain threshold.
+We need to remember that our generator and discriminator are training together, and against each other.
+Which means that the generator loss might be small due to untrained discriminator.
+Stopping the training when we reach some threshold, will result in under-trained generator.
+2.The discriminator loss consists of two losses, one is due to the generated images from the generator, and the other 
+one is due to the real images given to the discriminator.
+The generator tries to minimize it`s loss and in result the first loss in the discriminator loss, must get bigger.
+Which means that if the discriminator loss remains constant, the second loss (due to the real images) is getting lower,
+which means that the discriminator can distinguish real images with more accuracy but can distinguish fake
+images with lower accuracy (will classify real images as real with more accuracy, and fake images as fake with less
+accuracy).
 
 """
 
