@@ -212,13 +212,14 @@ An equation: $e^{i\pi} -1 = 0$
 """
 
 part3_q2 = r"""
-1.When training GAN model to generate images we shouldn`t stop training when the generator loss reach certain threshold.
+
+1. When training GAN model to generate images we shouldn't stop training when the generator loss reach certain threshold.
 We need to remember that our generator and discriminator are training together, and against each other.
 Which means that the generator loss might be small due to untrained discriminator.
 Stopping the training when we reach some threshold, will result in under-trained generator.
-2.The discriminator loss consists of two losses, one is due to the generated images from the generator, and the other 
+2. The discriminator loss consists of two losses, one is due to the generated images from the generator, and the other 
 one is due to the real images given to the discriminator.
-The generator tries to minimize it`s loss and in result the first loss in the discriminator loss, must get bigger.
+The generator tries to minimize it's loss and in result the first loss in the discriminator loss, must get bigger.
 Which means that if the discriminator loss remains constant, the second loss (due to the real images) is getting lower,
 which means that the discriminator can distinguish real images with more accuracy but can distinguish fake
 images with lower accuracy (will classify real images as real with more accuracy, and fake images as fake with less
@@ -229,13 +230,19 @@ accuracy).
 part3_q3 = r"""
 **Your answer:**
 
+The main difference between the images that were generated with a VAE and the images that were generated with a GAN is
+that the ones generated in the VAE look very similar (if not identical) to each other, compared to those generated in
+the GAN that were very different from each other.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+The reason for it is probably the loss function that each generatative model is trying to minimize:
+- The VAE tries to minimize the MSE between an input image and its corresponding reconstructed image.
+- The generator part of the GAN tries to minimize the accuracy of the discriminator in classifying fake images as fake.
+
+Therefore, since the training dataset is relatively small and shows just 1 entity (former president Bush), the VAE 
+generates images that are close to the average of its training images, which leads to similar generated samples. However,
+if the generator of the GAN was to produce similar images all the time, then the discriminator can easily classify these 
+similar images as fake and the rest as real, and it will be correct for the vast majority of times. Therefore, since the 
+generator tries to fool the discriminator, it has to come up with very different images.
 
 """
 
