@@ -199,15 +199,18 @@ def part3_gan_hyperparams():
 
 
 part3_q1 = r"""
-**Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+While updating the discriminator, we do not want to maintain gradients for the generator model.
+We can see in our code that when we forward through our discriminator with the generated batch, we use detach to 
+avoid maintaining gradients to our generated images (while updating the discriminator). 
+While updating the generator, we do maintain gradients through our entire model (we do not use detach in this part).
+When we are training our discriminator, we want to update only the discriminator parameters.
+We would like to view the discriminator as a sole model, which receives fake and real images and needs to classify
+which is which. Therefor we backpropagate only through the discriminator part.
+When we are training our generator, we want to update it`s parameters using the loss of the discriminator and it`s 
+prediction labels. The generator will try to maximize the loss of the discriminator (which indicates that the fake 
+images we created are good), and this is why we want to maintain gradients through our entire model instead 
+of only through the generator part.
 
 """
 
@@ -228,13 +231,12 @@ accuracy).
 """
 
 part3_q3 = r"""
-**Your answer:**
 
 The main difference between the images that were generated with a VAE and the images that were generated with a GAN is
 that the ones generated in the VAE look very similar (if not identical) to each other, compared to those generated in
 the GAN that were very different from each other.
 
-The reason for it is probably the loss function that each generatative model is trying to minimize:
+The reason for it is probably the loss function that each generative model is trying to minimize:
 - The VAE tries to minimize the MSE between an input image and its corresponding reconstructed image.
 - The generator part of the GAN tries to minimize the accuracy of the discriminator in classifying fake images as fake.
 
