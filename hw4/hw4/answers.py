@@ -20,7 +20,8 @@ def part1_pg_hyperparams():
     # TODO: Tweak the hyperparameters if needed.
     #  You can also add new ones if you need them for your model's __init__.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    hp['h1'] = 16
+    hp['h2'] = 16
     # ========================
     return hp
 
