@@ -396,7 +396,6 @@ class PolicyTrainer(object):
                 episode_num += batch.num_episodes
                 last_episode_rewards.extend(batch.total_rewards.cpu().numpy())
                 mean_reward = np.mean(last_episode_rewards)
-
                 loss_t, losses_dict = self.train_batch(batch)
                 self.store_training_data(losses_dict, loss_t=loss_t.item(),
                                          mean_reward=mean_reward,

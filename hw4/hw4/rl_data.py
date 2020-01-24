@@ -91,26 +91,28 @@ class TrainBatch(object):
         #   - Construct a TrainBatch instance.
         # ====== YOUR CODE: ======
         n_exps = 0
+        n_episodes = 0
         for ep in episodes:
+            n_episodes += 1
             n_exps += len(ep.experiences)
         state_shape = episodes[0].experiences[0].state.shape
 
         states = torch.empty(n_exps, *state_shape)
         actions = torch.empty(n_exps, dtype=torch.long)
         q_vals = torch.empty(n_exps)
-        rewards = torch.empty(n_exps)
+        rewards = torch.empty(n_episodes)
 
         index = 0
-        for episode in episodes:
+        for j, episode in enumerate(episodes):
             qvals = episode.calc_qvals(gamma)
 
             for i, experience in enumerate(episode.experiences):
                 states[index, :] = experience.state
                 actions[index] = experience.action
                 q_vals[index] = qvals[i]
-                rewards[index] = experience.reward
 
                 index += 1
+            rewards[j] = episode.total_reward
 
         train_batch = TrainBatch(states, actions, q_vals, rewards)
         # ========================

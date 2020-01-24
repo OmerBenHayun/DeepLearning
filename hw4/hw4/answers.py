@@ -11,10 +11,10 @@ math (delimited with $$).
 
 
 def part1_pg_hyperparams():
-    hp = dict(batch_size=8,
+    hp = dict(batch_size=32,
               gamma=0.99,
               beta=0.5,
-              learn_rate=0.0003,
+              learn_rate=1e-3,
               eps=1e-8,
               )
     # TODO: Tweak the hyperparameters if needed.
@@ -22,6 +22,9 @@ def part1_pg_hyperparams():
     # ====== YOUR CODE: ======
     hp['h1'] = 32
     hp['h2'] = 32
+    hp['batch_size'] = 64
+    hp['gamma'] = 0.999
+    hp['learn_rate'] = 8e-3
     # ========================
     return hp
 
