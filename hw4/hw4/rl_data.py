@@ -61,7 +61,7 @@ class TrainBatch(object):
     """
 
     def __init__(self, states: torch.FloatTensor, actions: torch.LongTensor,
-                 q_vals: torch.LongTensor, total_rewards: torch.FloatTensor):
+                 q_vals: torch.FloatTensor, total_rewards: torch.FloatTensor):
 
         assert states.shape[0] == actions.shape[0] == q_vals.shape[0]
 
@@ -95,9 +95,9 @@ class TrainBatch(object):
             n_exps += len(ep.experiences)
         state_shape = episodes[0].experiences[0].state.shape
 
-        states  = torch.empty(n_exps, *state_shape)
+        states = torch.empty(n_exps, *state_shape)
         actions = torch.empty(n_exps, dtype=torch.long)
-        q_vals  = torch.empty(n_exps)
+        q_vals = torch.empty(n_exps)
         rewards = torch.empty(n_exps)
 
         index = 0
@@ -105,7 +105,7 @@ class TrainBatch(object):
             qvals = episode.calc_qvals(gamma)
 
             for i, experience in enumerate(episode.experiences):
-                states[index,:] = experience.state
+                states[index, :] = experience.state
                 actions[index] = experience.action
                 q_vals[index] = qvals[i]
                 rewards[index] = experience.reward

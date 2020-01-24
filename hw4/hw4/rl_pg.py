@@ -109,8 +109,9 @@ class PolicyAgent(object):
         #  Generate the distribution as described above.
         #  Notice that you should use p_net for *inference* only.
         # ====== YOUR CODE: ======
-        output = self.p_net.forward(self.curr_state.view(1, -1))
-        actions_proba = torch.softmax(output, dim=-1).view(-1)
+        with torch.no_grad():
+            output = self.p_net.forward(self.curr_state.view(1, -1))
+            actions_proba = torch.softmax(output, dim=-1).view(-1)
         # ========================
 
         return actions_proba
@@ -133,12 +134,11 @@ class PolicyAgent(object):
         # ====== YOUR CODE: ======
 
         probs = self.current_action_distribution()
-
-        action = torch.distributions.Categorical(probs).sample().item()
-        
+        # action = torch.distributions.Categorical(probs).sample().item()
+        action = torch.multinomial(probs, 1).item()
         observation, reward, is_done, info = self.env.step(action)
         experience = Experience(self.curr_state, action, reward, is_done)
-
+        self.curr_state = torch.tensor(observation, device=self.device, dtype=torch.float)
         # ========================
         if is_done:
             self.reset()
@@ -223,7 +223,6 @@ class VanillaPolicyGradientLoss(nn.Module):
         # ====== YOUR CODE: ======
         log_probs = torch.log_softmax(action_scores, dim=-1)
         action_log_probs = log_probs.gather(1, batch.actions.unsqueeze(1))
-
         exp_losses = policy_weight * action_log_probs.squeeze()
         loss_p = - torch.mean(exp_losses)
         # ========================
@@ -243,7 +242,8 @@ class BaselinePolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Calculate the loss and baseline.
         #  Use the helper methods in this class as before.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        weight, baseline = self._policy_weight(batch)
+        loss_p = self._policy_loss(batch, action_scores, weight - baseline)
         # ========================
         return loss_p, dict(loss_p=loss_p.item(), baseline=baseline.item())
 
@@ -252,7 +252,8 @@ class BaselinePolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Calculate both the policy weight term and the baseline value for
         #  the PG loss with baseline.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        policy_weight = batch.q_vals
+        baseline = torch.mean(policy_weight)
         # ========================
         return policy_weight, baseline
 
@@ -276,7 +277,7 @@ class ActionEntropyLoss(nn.Module):
         max_entropy = None
         # TODO: Compute max_entropy.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        max_entropy = - np.log(1 / n_actions)
         # ========================
         return max_entropy
 
@@ -302,7 +303,10 @@ class ActionEntropyLoss(nn.Module):
         #   - Use pytorch built-in softmax and log_softmax.
         #   - Calculate loss per experience and average over all of them.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        probs = torch.softmax(action_scores, dim=-1)
+        log_probs = torch.log_softmax(action_scores, dim=-1)
+        entropies = -torch.sum(probs * log_probs, dim=-1) / self.max_entropy
+        loss_e = -torch.mean(entropies)
         # ========================
 
         loss_e *= self.beta
@@ -414,13 +418,13 @@ class PolicyTrainer(object):
 
                 pbar.set_description(desc_str)
                 pbar.update(n=batch.num_episodes)
-
                 if mean_reward >= target_reward:
                     terminate = f'\n=== 🚀 SOLVED - Target reward reached! 🚀'
                 if episode_num >= max_episodes:
                     terminate = f'\n=== STOPPING - Max episode reached'
                 post_batch_fn(i, self.model, batch,
                               final=terminate is not None)
+
                 if terminate:
                     break
 
@@ -441,7 +445,18 @@ class PolicyTrainer(object):
         #   - Backprop.
         #   - Update model parameters.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.optimizer.zero_grad()
+        action_values = self.model(batch.states)
+        for loss_fn in self.loss_functions:
+            loss, loss_dict = loss_fn(batch, action_values)
+            if total_loss is None:
+                total_loss = loss
+            else:
+                total_loss += loss
+            losses_dict.update(loss_dict)
+        total_loss.backward()
+
+        self.optimizer.step()
         # ========================
 
         return total_loss, losses_dict
