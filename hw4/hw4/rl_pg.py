@@ -165,7 +165,7 @@ class PolicyAgent(object):
             #  Create an agent and play the environment for one episode
             #  based on the policy encoded in p_net.
             # ====== YOUR CODE: ======
-            agent = PolicyAgent(env, p_net, device=device)
+            agent = cls(env, p_net, device=device)
 
             observation = env.reset()
             done = False

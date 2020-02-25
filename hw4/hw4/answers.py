@@ -40,7 +40,13 @@ def part1_aac_hyperparams():
     # TODO: Tweak the hyperparameters. You can also add new ones if you need
     #   them for your model implementation.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    hp['h1'] = 64
+    hp['h2'] = 32
+    hp['batch_size'] = 64
+    hp['gamma'] = 0.999
+    hp['learn_rate'] = 8e-3
+    hp['delta'] = 0.7
+    hp['beta'] = 0.7
     # ========================
     return hp
 
