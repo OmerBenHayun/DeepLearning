@@ -54,13 +54,17 @@ def part1_aac_hyperparams():
 part1_q1 = r"""
 **Your answer:**
 
+Intuitively, subtracting a decent baseline from the reward in the calculation of the gradients, leads to a smaller rewards 
+(in absolute value), which leads to smaller gradients overall, which means reduced variance and more stable training.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+We can look at an example batch, with some of the trajectories leading to a reward of 1, and the rest of the trajectories 
+leading to a reward of 100. Clearly, we will want our algorithm to learn only the trajectories that lead to the 100 reward,
+but since both rewards are positive, then the network will adjust its weights towards both trajectories. However, if there 
+are many more samples of reward 1, then the network will most likely fit to take trajectories that lead to this reward, which
+is not what we want.
+In order solve this problem, we can subtract a baseline, such that the reward 1 will become a negative reward, and the reward 100
+will remain a positive reward. This way, the network will actually move away from the trajectories that lead to reward 1, and 
+towards the trajectories that lead to reward 100, which is what we are looking for.
 
 """
 
